@@ -7,42 +7,51 @@ class MenuScene extends Phaser.Scene {
     }
 
     preload() {
-        // Загружаем фон для главного меню
         this.load.image('background', 'doge/1.png');
     }
 
     create() {
-        const { width, height } = this.cameras.main;
+        let { width, height } = this.scale;
 
-        // Добавляем фон и масштабируем его
         this.add.image(width / 2, height / 2, 'background')
             .setDisplaySize(width, height);
 
-        // Заголовок игры
         this.add.text(width / 2, height * 0.2, 'Flappy Doge', {
-            fontSize: `${width * 0.1}px`,
+            fontSize: '60px',
             fill: '#ffdd00',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 5,
         }).setOrigin(0.5);
 
-        // Функция для создания кнопки
-        const createButton = (y, text, sceneKey) => {
-            let btn = this.add.text(width / 2, y, text, {
-                fontSize: `${width * 0.08}px`,
-                fill: '#ffffff',
-                stroke: '#000',
-                strokeThickness: 4
-            }).setOrigin(0.5);
-            btn.setInteractive();
-            btn.on('pointerdown', () => { this.scene.start(sceneKey); });
-            return btn;
-        };
+        let playText = this.add.text(width / 2, height * 0.4, 'Играть', {
+            fontSize: '50px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
 
-        createButton(height * 0.4, 'Играть', 'GameScene');
-        createButton(height * 0.5, 'Мои рекорды', 'RecordsScene');
-        createButton(height * 0.6, 'Мои друзья', 'FriendsScene');
+        let recordsText = this.add.text(width / 2, height * 0.5, 'Мои рекорды', {
+            fontSize: '50px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+
+        let friendsText = this.add.text(width / 2, height * 0.6, 'Мои друзья', {
+            fontSize: '50px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+
+        playText.setInteractive();
+        recordsText.setInteractive();
+        friendsText.setInteractive();
+
+        playText.on('pointerdown', () => this.scene.start('GameScene'));
+        recordsText.on('pointerdown', () => this.scene.start('RecordsScene'));
+        friendsText.on('pointerdown', () => this.scene.start('FriendsScene'));
     }
 }
 
@@ -64,41 +73,40 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        const { width, height } = this.cameras.main;
-
-        this.add.image(width / 2, height / 2, 'background')
-            .setDisplaySize(width, height);
+        let { width, height } = this.scale;
+        this.add.image(width / 2, height / 2, 'background').setDisplaySize(width, height);
 
         this.gap = height * 0.2;
-        this.pipeSpeed = width * 0.01;
+        this.pipeSpeed = 15;
         this.score = 0;
         this.gameOverFlag = false;
 
-        this.dogY = height / 2;
+        this.dogY = height * 0.5;
         this.jump = 0;
-        this.jumpSpeed = height * 0.02;
-        this.gravity = height * 0.005;
+        this.jumpSpeed = 10;
+        this.gravity = 5;
 
         this.obstacles = [];
         this.bones = this.physics.add.group();
 
-        spawnObstaclePair.call(this, width * 1.2);
-        spawnObstaclePair.call(this, width * 1.5);
-        spawnObstaclePair.call(this, width * 1.8);
+        spawnObstaclePair.call(this, width);
+        spawnObstaclePair.call(this, width + 300);
+        spawnObstaclePair.call(this, width + 600);
 
-        this.scoreText = this.add.text(width * 0.05, height * 0.05, String(this.score), {
-            fontSize: `${width * 0.1}px`,
+        this.scoreText = this.add.text(20, 20, String(this.score), {
+            fontSize: '40px',
             fill: '#ffffff'
         }).setOrigin(0, 0);
+        this.scoreText.setDepth(1000);
 
-        this.dog = this.physics.add.image(width * 0.15, this.dogY, 'dog').setScale(width * 0.0005);
+        this.dog = this.physics.add.image(width * 0.15, this.dogY, 'dog').setScale(0.3);
         this.dog.body.allowGravity = false;
 
         this.input.on('pointerdown', () => {
             if (!this.gameOverFlag) {
                 this.jump = 17;
-                this.jumpSpeed = height * 0.02;
-                this.gravity = height * 0.005;
+                this.jumpSpeed = 10;
+                this.gravity = 5;
             }
         });
 
@@ -108,7 +116,7 @@ class GameScene extends Phaser.Scene {
     update() {
         if (this.gameOverFlag) return;
 
-        this.obstacles.forEach(obs => {
+        for (let obs of this.obstacles) {
             obs.x -= this.pipeSpeed;
             obs.top.x = obs.x;
             obs.bottom.x = obs.x;
@@ -117,12 +125,16 @@ class GameScene extends Phaser.Scene {
                 obs.scored = true;
                 this.score += 1;
             }
-        });
+        }
 
-        this.obstacles = this.obstacles.filter(obs => obs.x > -100);
+        while (this.obstacles.length > 0 && this.obstacles[0].x < -80) {
+            let obs = this.obstacles.shift();
+            obs.top.destroy();
+            obs.bottom.destroy();
+        }
 
-        if (this.obstacles.length > 0 && this.obstacles[this.obstacles.length - 1].x < this.cameras.main.width * 0.7) {
-            spawnObstaclePair.call(this, this.obstacles[this.obstacles.length - 1].x + this.cameras.main.width * 0.4);
+        if (this.obstacles.length > 0 && this.obstacles[this.obstacles.length - 1].x < this.scale.width - 300) {
+            spawnObstaclePair.call(this, this.obstacles[this.obstacles.length - 1].x + Phaser.Math.Between(250, 300));
             this.pipeSpeed += 0.1;
         }
 
@@ -141,7 +153,16 @@ class GameScene extends Phaser.Scene {
         }
         this.dog.y = this.dogY;
 
-        if (this.dogY < 0 || this.dogY > this.cameras.main.height) {
+        let dogRect = this.dog.getBounds();
+        for (let obs of this.obstacles) {
+            if (Phaser.Geom.Intersects.RectangleToRectangle(dogRect, obs.top.getBounds()) ||
+                Phaser.Geom.Intersects.RectangleToRectangle(dogRect, obs.bottom.getBounds())) {
+                handleGameOver.call(this);
+                return;
+            }
+        }
+
+        if (this.dogY < 0 || this.dogY > this.scale.height) {
             handleGameOver.call(this);
         }
 
@@ -149,48 +170,43 @@ class GameScene extends Phaser.Scene {
     }
 }
 
+// ------------------
+// Функция создания препятствий
+// ------------------
 function spawnObstaclePair(x) {
-    let { height } = this.cameras.main;
+    let { height } = this.scale;
     let offset = Phaser.Math.Between(-50, 50);
     let gapCenter = height / 2 + offset;
 
     let topPipe = this.add.image(x, gapCenter - this.gap / 2, 'topPipe').setOrigin(0.5, 1);
-    let bottomPipe = this.add.image(x, gapCenter + this.gap / 2, 'bottomPipe').setOrigin(0.5, 0);
+    let bottomPipe = this.add.image(x - 10, gapCenter + this.gap / 2, 'bottomPipe').setOrigin(0.5, 0);
     bottomPipe.scaleX = -1;
 
     this.obstacles.push({ x, top: topPipe, bottom: bottomPipe, scored: false });
 
-    if (Phaser.Math.Between(0, 1) === 1) {
+    if (x > 700 && Phaser.Math.Between(0, 1) === 1) {
         let bone = this.physics.add.image(x + 100, gapCenter, 'bone').setScale(0.1);
         bone.body.allowGravity = false;
         this.bones.add(bone);
     }
 }
 
-function collectBone(dog, bone) {
-    this.score += 5;
-    bone.destroy();
-}
-
-function handleGameOver() {
-    this.gameOverFlag = true;
-    this.dog.setTexture('fail');
-    this.pipeSpeed = 0;
-}
-
+// ------------------
+// Конфигурация игры
+// ------------------
 const gameConfig = {
     type: Phaser.AUTO,
     width: window.innerWidth,
     height: window.innerHeight,
-    physics: { 
-        default: 'arcade', 
-        arcade: { gravity: { y: 0 }, debug: false } 
-    },
-    scene: [MenuScene, GameScene],
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-    }
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 0 }, debug: false }
+    },
+    scene: [MenuScene, GameScene]
 };
 
 const game = new Phaser.Game(gameConfig);
