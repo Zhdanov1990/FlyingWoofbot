@@ -55,12 +55,12 @@ class MenuScene extends Phaser.Scene {
         recordsText.on('pointerdown', () => { this.scene.start('RecordsScene'); });
         friendsText.on('pointerdown', () => { this.scene.start('FriendsScene'); });
     }
-}
+  }
   
-// ------------------
-// Сцена игры
-// ------------------
-class GameScene extends Phaser.Scene {
+  // ------------------
+  // Сцена игры
+  // ------------------
+  class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
     }
@@ -188,12 +188,12 @@ class GameScene extends Phaser.Scene {
         // Обновляем отображение счета
         this.scoreText.setText(String(this.score));
     }
-}
+  }
   
-// ------------------
-// Функция создания пары препятствий (труб)
-// ------------------
-function spawnObstaclePair(x) {
+  // ------------------
+  // Функция создания пары препятствий (труб)
+  // ------------------
+  function spawnObstaclePair(x) {
     // Случайное смещение для центра зазора
     let offset = Phaser.Math.Between(-50, 50);
     let gapCenter = 450 + offset;
@@ -217,20 +217,20 @@ function spawnObstaclePair(x) {
         bone.body.allowGravity = false;
         this.bones.add(bone);
     }
-}
+  }
   
-// ------------------
-// Функция обработки сбора кости (бонус)
-// ------------------
-function collectBone(dog, bone) {
+  // ------------------
+  // Функция обработки сбора кости (бонус)
+  // ------------------
+  function collectBone(dog, bone) {
     this.score += 5;
     bone.destroy();
-}
+  }
   
-// ------------------
-// Функция обработки окончания игры
-// ------------------
-function handleGameOver() {
+  // ------------------
+  // Функция обработки окончания игры
+  // ------------------
+  function handleGameOver() {
     // Останавливаем игровой процесс
     this.gameOverFlag = true;
     this.dog.setTexture('fail');
@@ -269,12 +269,12 @@ function handleGameOver() {
         restartText.on('pointerdown', () => { this.scene.restart(); });
         menuText.on('pointerdown', () => { this.scene.start('MenuScene'); });
     });
-}
+  }
   
-// ------------------
-// Сцена рекордов
-// ------------------
-class RecordsScene extends Phaser.Scene {
+  // ------------------
+  // Сцена рекордов
+  // ------------------
+  class RecordsScene extends Phaser.Scene {
     constructor() { 
         super({ key: 'RecordsScene' }); 
     }
@@ -305,12 +305,12 @@ class RecordsScene extends Phaser.Scene {
         backText.setInteractive();
         backText.on('pointerdown', () => { this.scene.start('MenuScene'); });
     }
-}
+  }
   
-// ------------------
-// Сцена друзей
-// ------------------
-class FriendsScene extends Phaser.Scene {
+  // ------------------
+  // Сцена друзей
+  // ------------------
+  class FriendsScene extends Phaser.Scene {
     constructor() { 
         super({ key: 'FriendsScene' }); 
     }
@@ -353,13 +353,12 @@ class FriendsScene extends Phaser.Scene {
             backText.on('pointerdown', () => { this.scene.start('MenuScene'); });
         }
     }
-}
+  }
   
-// ------------------
-// Конфигурация игры и запуск
-// ------------------
-// Добавлены настройки масштабирования для поддержки мобильных устройств в Telegram
-const gameConfig = {
+  // ------------------
+  // Конфигурация игры и запуск
+  // ------------------
+  const gameConfig = {
     type: Phaser.AUTO,
     width: 600,
     height: 900,
@@ -367,12 +366,8 @@ const gameConfig = {
         default: 'arcade', 
         arcade: { gravity: { y: 0 }, debug: false } 
     },
-    // Настройки масштабирования для адаптивного отображения
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
-    },
     scene: [MenuScene, GameScene, RecordsScene, FriendsScene]
-};
+  };
   
-const game = new Phaser.Game(gameConfig);
+  const game = new Phaser.Game(gameConfig);
+  
