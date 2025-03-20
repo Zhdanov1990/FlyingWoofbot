@@ -17,11 +17,9 @@ class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        // Масштабируем фон
         this.add.image(screenWidth / 2, screenHeight / 2, 'background')
             .setDisplaySize(screenWidth, screenHeight);
 
-        // Заголовок игры
         this.add.text(screenWidth / 2, screenHeight * 0.2, 'Flappy Doge', {
             fontSize: screenWidth * 0.12 + 'px',
             fill: '#ffdd00',
@@ -30,7 +28,6 @@ class MenuScene extends Phaser.Scene {
             strokeThickness: 5,
         }).setOrigin(0.5);
 
-        // Создаем кнопки
         const buttonStyle = {
             fontSize: screenWidth * 0.08 + 'px',
             fill: '#ffffff',
@@ -42,7 +39,6 @@ class MenuScene extends Phaser.Scene {
         let recordsText = this.add.text(screenWidth / 2, screenHeight * 0.5, 'Мои рекорды', buttonStyle).setOrigin(0.5);
         let friendsText = this.add.text(screenWidth / 2, screenHeight * 0.6, 'Мои друзья', buttonStyle).setOrigin(0.5);
 
-        // Делаем кнопки интерактивными
         [playText, recordsText, friendsText].forEach(btn => btn.setInteractive({ useHandCursor: true }));
 
         playText.on('pointerdown', () => this.scene.start('GameScene'));
@@ -69,24 +65,24 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // Добавляем фон
         this.add.image(screenWidth / 2, screenHeight / 2, 'background')
             .setDisplaySize(screenWidth, screenHeight);
 
-        this.gap = screenHeight * 0.18; // Расстояние между трубами
-        this.pipeSpeed = screenWidth * 0.02;
+        this.gap = screenHeight * 0.18;
+        this.pipeSpeed = screenWidth * 0.01;
         this.score = 0;
         this.gameOverFlag = false;
 
-        // Параметры прыжка собаки
         this.dogY = screenHeight / 2;
         this.jump = 0;
         this.jumpSpeed = screenHeight * 0.012;
         this.gravity = screenHeight * 0.005;
 
-        // Спрайт собаки
         this.dog = this.physics.add.image(screenWidth * 0.15, this.dogY, 'dog').setScale(screenWidth * 0.0005);
         this.dog.body.allowGravity = false;
+
+        this.pipes = this.physics.add.group();
+        this.spawnPipe();
 
         this.input.on('pointerdown', () => {
             if (!this.gameOverFlag) {
@@ -95,12 +91,18 @@ class GameScene extends Phaser.Scene {
                 this.gravity = screenHeight * 0.005;
             }
         });
+
+        this.timer = this.time.addEvent({
+            delay: 1500,
+            callback: this.spawnPipe,
+            callbackScope: this,
+            loop: true
+        });
     }
 
     update() {
         if (this.gameOverFlag) return;
 
-        // Обновляем положение собаки
         if (this.jump > 0) {
             this.jumpSpeed -= screenHeight * 0.0012;
             this.dogY -= this.jumpSpeed;
@@ -116,71 +118,96 @@ class GameScene extends Phaser.Scene {
             handleGameOver.call(this);
         }
     }
+
+    spawnPipe() {
+        let pipeY = Phaser.Math.Between(screenHeight * 0.2, screenHeight * 0.8);
+        let topPipe = this.pipes.create(screenWidth, pipeY - this.gap, 'topPipe').setOrigin(0.5, 1);
+        let bottomPipe = this.pipes.create(screenWidth, pipeY + this.gap, 'bottomPipe').setOrigin(0.5, 0);
+        topPipe.setVelocityX(-this.pipeSpeed);
+        bottomPipe.setVelocityX(-this.pipeSpeed);
+    }
 }
 
 // ------------------
-// Функция обработки окончания игры
+// Сцена "Мои рекорды"
 // ------------------
-function handleGameOver() {
-    this.gameOverFlag = true;
-    this.dog.setTexture('fail');
-    this.pipeSpeed = 0;
-
-    let bestScore = localStorage.getItem('bestScore') || 0;
-    if (this.score > bestScore) {
-        localStorage.setItem('bestScore', this.score);
+class RecordsScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'RecordsScene' });
     }
 
-    this.time.delayedCall(500, () => {
-        let overlay = this.add.rectangle(screenWidth / 2, screenHeight / 2, screenWidth, screenHeight, 0x000000, 0.5);
-        this.add.text(screenWidth / 2, screenHeight * 0.4, 'Игра окончена', {
+    create() {
+        this.add.text(screenWidth / 2, screenHeight * 0.2, 'Мои рекорды', {
             fontSize: screenWidth * 0.1 + 'px',
-            fill: '#ff0000'
+            fill: '#ffffff',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        let restartText = this.add.text(screenWidth / 2, screenHeight * 0.5, 'Перезапустить', {
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        this.add.text(screenWidth / 2, screenHeight * 0.4, `Лучший результат: ${bestScore}`, {
+            fontSize: screenWidth * 0.08 + 'px',
+            fill: '#ffdd00'
+        }).setOrigin(0.5);
+
+        let backText = this.add.text(screenWidth / 2, screenHeight * 0.6, 'Назад', {
             fontSize: screenWidth * 0.08 + 'px',
             fill: '#ffffff',
             stroke: '#000',
             strokeThickness: 4
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        let menuText = this.add.text(screenWidth / 2, screenHeight * 0.6, 'Главное меню', {
-            fontSize: screenWidth * 0.08 + 'px',
-            fill: '#ffffff',
-            stroke: '#000',
-            strokeThickness: 4
-        }).setOrigin(0.5);
-
-        restartText.setInteractive({ useHandCursor: true });
-        menuText.setInteractive({ useHandCursor: true });
-
-        restartText.on('pointerdown', () => this.scene.restart());
-        menuText.on('pointerdown', () => this.scene.start('MenuScene'));
-    });
+        backText.on('pointerdown', () => this.scene.start('MenuScene'));
+    }
 }
 
 // ------------------
-// Конфигурация игры и запуск
+// Сцена "Мои друзья"
 // ------------------
-const gameConfig = {
+class FriendsScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'FriendsScene' });
+    }
+
+    create() {
+        this.add.text(screenWidth / 2, screenHeight * 0.2, 'Мои друзья', {
+            fontSize: screenWidth * 0.1 + 'px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        let addFriendText = this.add.text(screenWidth / 2, screenHeight * 0.4, 'Добавить друга', {
+            fontSize: screenWidth * 0.08 + 'px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        addFriendText.on('pointerdown', () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.requestContact();
+            } else {
+                alert("Функция доступна только в Telegram Mini App!");
+            }
+        });
+
+        let backText = this.add.text(screenWidth / 2, screenHeight * 0.6, 'Назад', {
+            fontSize: screenWidth * 0.08 + 'px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        backText.on('pointerdown', () => this.scene.start('MenuScene'));
+    }
+}
+
+// ------------------
+// Запуск игры
+// ------------------
+const game = new Phaser.Game({
     type: Phaser.AUTO,
     width: screenWidth,
     height: screenHeight,
-    physics: {
-        default: 'arcade',
-        arcade: { gravity: { y: 0 }, debug: false }
-    },
-    scene: [MenuScene, GameScene]
-};
-
-const game = new Phaser.Game(gameConfig);
-
-// ------------------
-// Адаптация при изменении экрана
-// ------------------
-window.addEventListener('resize', () => {
-    let newWidth = window.innerWidth;
-    let newHeight = window.innerHeight;
-    game.scale.resize(newWidth, newHeight);
+    physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+    scene: [MenuScene, GameScene, RecordsScene, FriendsScene]
 });

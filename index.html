@@ -4,17 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Flappy Doge</title>
+
+    <!-- Мета-теги для Telegram Mini Apps -->
+    <meta name="theme-color" content="#000000">
+    <meta property="og:title" content="Flappy Doge">
+    <meta property="og:description" content="Лети, собирай кости и избегай труб!">
+    <meta property="og:image" content="https://zhdanov1990.github.io/FlyingWoofbot/doge/icon.png">
+
+    <!-- Подключение Phaser -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script defer src="game.js"></script>
+
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             overflow: hidden;
+            background-color: black;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: black;
+            width: 100vw;
             height: 100vh;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100vw;
+            max-height: 100vh;
         }
     </style>
 </head>
