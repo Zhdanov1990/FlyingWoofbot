@@ -6,7 +6,6 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from dotenv import load_dotenv
 
-# Загружаем токен
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -29,12 +28,12 @@ async def start_command(message: Message):
 async def play_game(callback_query: types.CallbackQuery):
     """Открывает игру по нажатию кнопки."""
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_game(callback_query.from_user.id, game_short_name="FlyingWoofbot")
+    await bot.send_game(callback_query.from_user.id, game_short_name="FlappyWoof")
 
 @dp.message(Command("play"))
 async def play_command(message: Message):
     """Позволяет запустить игру через команду /play."""
-    await message.answer_game(game_short_name="FlyingWoofbot")
+    await message.answer_game(game_short_name="FlappyWoof")
 
 @dp.message(Command("help"))
 async def help_command(message: Message):
